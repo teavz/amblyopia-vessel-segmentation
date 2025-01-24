@@ -62,7 +62,8 @@ SOFTWARE.
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job.)
 
-   [MATLAB R2022b]: <https://www.mathworks.com/products/matlab.html>
+   [MATLAB R2022b]: <https://www.mathworks.com/products/new_products/release2022b.html>
    [SELAB]: <https://selab.berkeley.edu/>
    [SA-UNet paper]: <https://ieeexplore.ieee.org/document/9413346>
+   [Python 3.9.2]: <https://www.anaconda.com/download>
 
