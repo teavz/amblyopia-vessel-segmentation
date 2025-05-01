@@ -33,7 +33,7 @@ The framework requires the following software:
    ```
 5. Run the segmentation on an example image:
     ```
-    python run_segmentation.py --image sample_images/AMB_001_OD.png --model models/SA_UNet.h5
+    python scripts/run_segmentation.py --image sample-images/AMB_001_OD.png --model models/SA_UNet.h5
     ```
    
 ## License
