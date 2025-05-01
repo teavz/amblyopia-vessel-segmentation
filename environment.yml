@@ -1,0 +1,17 @@
+name: amblyopia_iroct_env
+dependencies:
+  - python=3.9.2
+  - pip
+  - pip:
+      - pyside6
+      - scikit-image
+      - shapely
+      - opencv-python==4.5.*
+      - tensorflow==2.7.0
+      - numpy<2
+      - pandas==1.2.*
+      - imageio
+      - matplotlib==3.3
+      - scipy
+      - protobuf==3.19.1
+      - spyder-kernels
