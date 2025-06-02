@@ -1,4 +1,4 @@
-# Towards image-based detection of Amblyopia using deep learning
+# Are retinal vasculature features altered in Amblyopia?
 
 ## Authors  
 
@@ -33,7 +33,7 @@ The framework requires the following software:
    ```
 5. Run the segmentation on an example image:
     ```
-    python scripts/run_segmentation.py --image sample-images/AMB_001_OD.png --model models/SA_UNet.h5
+    python scripts/run_segmentation.py --image sample-images/AMB_001_OS.png --model models/SA_UNet.h5
     ```
    
 ## License
@@ -66,4 +66,3 @@ SOFTWARE.
    [SELAB]: <https://selab.berkeley.edu/>
    [SA-UNet paper]: <https://ieeexplore.ieee.org/document/9413346>
    [Python 3.9.2]: <https://www.anaconda.com/download>
-
