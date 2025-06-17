@@ -35,6 +35,10 @@ The framework requires the following software:
     ```
     python scripts/run_segmentation.py --image sample-images/AMB_001_OS.png --model models/SA_UNet.h5
     ```
+6. If you want to segment all images at once:
+	```
+    python -c "import glob,subprocess,sys;[subprocess.run([sys.executable,'scripts/run_segmentation.py','--image',f,'--model','models/SA_UNet.h5']) for f in glob.glob('sample-images/*.png')]"
+    ```
    
 ## License
 MIT License
