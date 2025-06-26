@@ -4,7 +4,9 @@
 % Copyright 2025 © Rijul S. Soans, © Susana T. L. Chung
 
 % This script lets you choose a segmented vessel map from the "segmented-images"
-% folder, computes vascular features, and appends them to a MAT‐file table
+% folder, computes vascular features, and appends them to a MAT‐file table.
+
+% Execute the script by pressing the green Run Button in the Editor Tab.
 
 clc; clear; close all;
 
@@ -72,9 +74,10 @@ else
 
     % 2. --- Fractal Dimension ---
     blockPlotOn      = true;
-    blockSizeDisplay = 10;  % overlay a 10×10 block grid
+    blockSizeDisplay = 12;  % overlay a 12×12 block grid
+    graphPlotOn = true;
     [fractalDimension, log_x, log_y] = calculateVascularFractalDimension( ...
-        cleanedVesselPixels, blockSizeDisplay, blockPlotOn );
+        cleanedVesselPixels, blockSizeDisplay, blockPlotOn, graphPlotOn);
     fprintf("Fractal Dimension: %.4f\n", fractalDimension);
 
     % 3. --- Vascular Skeleton Length ---
@@ -84,12 +87,12 @@ else
     fprintf("Skeleton Length: %d pixels\n", vascularSkeletonLength);
 
     % 4. --- Vascular Bifurcation Points ---
-    branchPoints = detectBranchpoints(spurSkelRemovImage, true);
+    [branchPoints, vbpImage] = detectVBP(spurSkelRemovImage);
     numBifurcationPoints = nnz(branchPoints);
     fprintf("No. of Bifurcation Points: %d\n", numBifurcationPoints);
 
     % Overlay branch points in green
-    RGBSkelImage = repmat(uint8(spurSkelRemovImage)*255, 1, 1, 3);
+    RGBSkelImage = repmat(uint8(vbpImage)*255, 1, 1, 3);
     [rowBifur, colBifur] = find(branchPoints);
 
     for idx = 1:numel(rowBifur)

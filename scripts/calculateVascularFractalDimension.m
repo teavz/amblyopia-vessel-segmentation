@@ -1,4 +1,4 @@
-function [fractal_dimension, log_x, log_y] = calculateVascularFractalDimension(image, blockSize, blockPlotOn)
+function [fractal_dimension, log_x, log_y] = calculateVascularFractalDimension(image, blockSizeDisplay, blockPlotOn, graphPlotOn)
 % Computes box‐counting fractal dimension on a binary image.
 
 % Check if image is binary
@@ -56,10 +56,28 @@ end
 coeffs = polyfit(log_x, log_y, 1);
 fractal_dimension = coeffs(1); % The slope of the regression line is the fractal dimension
 
+% Optionally show Fractal Dimension graph
+if graphPlotOn
+    figure;
+    scatter(log_x, log_y, 'b', 'filled');
+    hold on;
+    x_fit = linspace(min(log_x), max(log_x), 100);
+    y_fit = polyval(coeffs, x_fit);
+    plot(x_fit, y_fit, 'r-', 'LineWidth', 2);
+    set(gca,'fontname','Helvetica','FontSize',16);
+    xlabel('log(1/box size)');  % Corrected axis label
+    ylabel('log(Boxes with vessels)');
+    title('Regression Analysis for Vascular Fractal Dimension');
+    legend('Data Points', 'Fit Line', 'Location', 'best');
+    grid on;
+    set(gcf,'color','w');
+    hold off;
+end
+
 % Optionally show the image with blockSize * blockSize bounding boxes
 if blockPlotOn
-    if blockSize > 0
-        num_blocks = blockSize;
+    if blockSizeDisplay > 0
+        num_blocks = blockSizeDisplay;
         block_size_row = floor(rows / num_blocks);
         block_size_col = floor(cols / num_blocks);
         figure;
