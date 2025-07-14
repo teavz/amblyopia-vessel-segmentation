@@ -73,11 +73,12 @@ else
     fprintf("Vascular Area: %d pixels\n", vascularArea);
 
     % 2. --- Fractal Dimension ---
-    blockPlotOn      = true;
+    blockPlotOn = true;
+    numScales = 20; % desired number of different box‐sizes to sample
     blockSizeDisplay = 12;  % overlay a 12×12 block grid
     graphPlotOn = true;
     [fractalDimension, log_x, log_y] = calculateVascularFractalDimension( ...
-        cleanedVesselPixels, blockSizeDisplay, blockPlotOn, graphPlotOn);
+        cleanedVesselPixels, numScales, blockSizeDisplay, blockPlotOn, graphPlotOn);
     fprintf("Fractal Dimension: %.4f\n", fractalDimension);
 
     % 3. --- Vascular Skeleton Length ---
