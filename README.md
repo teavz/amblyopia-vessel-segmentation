@@ -26,7 +26,7 @@ The framework requires the following software:
 - [Python 3.9.2] - General purpose programming language for Vessel Segmentation
 - [MATLAB R2022b] - Programming & Numeric Computing platform for Analyses
 
-## Installation  
+## Getting Started  
 
 1. Install Python from the link provided above.
 2. Install MATLAB from the link provided above.
@@ -44,7 +44,8 @@ The framework requires the following software:
 	```
     python -c "import glob,subprocess,sys;[subprocess.run([sys.executable,'scripts/run_segmentation.py','--image',f,'--model','models/SA_UNet.h5']) for f in glob.glob('sample-images/*.png')]"
     ```
-   
+7. To get the vasculature metrics for a particular segmented image, use MATLAB to open and run ``vessel_map_analyzer.m`` found under the ``scripts`` folder.
+	
 ## License
 MIT License
 
