@@ -9,9 +9,14 @@ Sight Enhancement Laboratory ([SELAB])
 Herbert Wertheim School of Optometry & Vision Science  
 University of California, Berkeley, USA.
 
+## Publication
+
+**Soans, R. S.** & Chung, S. T. L. (2026). *Altered retinal vasculature in amblyopia*. Vision Research, **242**(108780), 1–12.  
+🔗 https://doi.org/10.1016/j.visres.2026.108780
+
 ## Features
 
-- Companion code for our research showing altered retinal vasculature can be used towards image-based detection of amblyopia
+- Companion code for our research showing altered retinal vasculature in amblyopia - even in the fellow eye that sees better.
 - Precise retinal vessel segmentation using Spatial Attention-UNet ([SA-UNet paper])
 
 ## Software Dependencies
