@@ -5,7 +5,6 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import backend as K
 from imageio import imread
 
 from SA_UNet import SA_UNet
@@ -13,7 +12,7 @@ from SA_UNet import SA_UNet
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
-DESIRED_SIZE = 592
+DESIRED_SIZE = 512
 WEIGHTS_FILE = "SA_UNet.h5"
 
 
@@ -44,10 +43,33 @@ def initialize_model(weight_path: str = WEIGHTS_FILE) -> tf.keras.Model:
     return model
 
 
+def _square_pad(img: np.ndarray) -> np.ndarray:
+    h, w = img.shape[:2]
+    if h == w:
+        return img
+    dim = max(h, w)
+    pad_top = (dim - h) // 2
+    pad_bottom = dim - h - pad_top
+    pad_left = (dim - w) // 2
+    pad_right = dim - w - pad_left
+    return cv2.copyMakeBorder(img, pad_top, pad_bottom, pad_left, pad_right, borderType=cv2.BORDER_REFLECT_101)
+
+
+def _percentile_normalize(img: np.ndarray, p_low: float = 2.0, p_high: float = 98.0) -> np.ndarray:
+    x = img.astype(np.float32)
+    p2 = np.percentile(x, p_low)
+    p98 = np.percentile(x, p_high)
+    denom = max(p98 - p2, 1e-6)
+    x = np.clip((x - p2) / denom, 0.0, 1.0)
+    return x
+
+
 def predict(
     model: tf.keras.Model,
     image_path: str,
     apply_clahe: bool = False,
+    threshold: float | None = 0.5,
+    morph_open: int = 0,
 ) -> np.ndarray:
     """
     Run the model on a single IR fundus image and return a binary mask.
@@ -62,23 +84,24 @@ def predict(
     """
     image = imread(image_path)
 
-    if apply_clahe:
-        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        image = clahe.apply(gray)
-
-    # If grayscale, convert to 3-channel RGB
+    # Ensure 3 channels (RGB), drop alpha
     if image.ndim == 2:
-        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-
-    # If there's an alpha channel, drop it
+        image = np.stack([image, image, image], axis=-1)
     if image.shape[-1] == 4:
         image = image[:, :, :3]
 
-    # Resize & normalize
-    image_resized = cv2.resize(image, (DESIRED_SIZE, DESIRED_SIZE))
-    image_norm = image_resized.astype("float32") / 255.0
-    batch = image_norm[np.newaxis, ...]
+    # Optional CLAHE on luminance
+    if apply_clahe:
+        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        eq = clahe.apply(gray)
+        image = np.stack([eq, eq, eq], axis=-1)
+
+    # Training-consistent preprocessing: square pad -> resize to 512; percentile normalize
+    image_sq = _square_pad(image)
+    image_resized = cv2.resize(image_sq, (DESIRED_SIZE, DESIRED_SIZE), interpolation=cv2.INTER_AREA)
+    image_norm = _percentile_normalize(image_resized)
+    batch = image_norm[np.newaxis, ...].astype("float32")
 
     expected_shape = (1, DESIRED_SIZE, DESIRED_SIZE, 3)
     if batch.shape != expected_shape:
@@ -88,10 +111,21 @@ def predict(
 
     x_tensor = tf.convert_to_tensor(batch)
     raw_pred = model(x_tensor)
-    mask = K.eval(raw_pred)[0]  # shape: (592,592,1) or (592,592)
+    # Keras 3 / TF eager: convert tensor to numpy directly
+    prob = raw_pred.numpy()[0]
+    if prob.ndim == 3 and prob.shape[-1] == 1:
+        prob = prob[..., 0]
 
-    mask = (mask * 255).astype(np.uint8)
-    _, binary = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
+    if threshold is None:
+        return (prob * 255.0).astype(np.uint8)
+
+    thr_val = max(0.0, min(1.0, float(threshold)))
+    binary = (prob >= thr_val).astype(np.uint8) * 255
+
+    if morph_open and int(morph_open) > 0:
+        k = int(morph_open)
+        k = max(1, min(15, k))
+        kernel = np.ones((k, k), np.uint8)
+        binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
 
     return binary
-

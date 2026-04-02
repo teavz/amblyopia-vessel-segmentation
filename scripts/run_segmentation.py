@@ -45,6 +45,9 @@ def parse_args():
         "--model", "-m", required=True,
         help="Path to the trained SA-UNet model file (e.g. .h5)"
     )
+    parser.add_argument("--use-clahe", action="store_true")
+    parser.add_argument("--threshold", type=float, default=0.5, help="Probability threshold (0..1); use -1 to output prob map")
+    parser.add_argument("--open", type=int, default=0, help="Morphological opening kernel size (0=off)")
     return parser.parse_args()
 
 
@@ -62,7 +65,8 @@ def main():
         model.load_weights(args.model)
 
     # run prediction
-    segmentation = predict(model, args.image, apply_clahe=False)
+    thr = None if args.threshold is not None and args.threshold < 0 else float(args.threshold)
+    segmentation = predict(model, args.image, apply_clahe=args.use_clahe, threshold=thr, morph_open=int(args.open))
     
     # Upsample to original size
     orig = imageio.imread(args.image)
@@ -89,4 +93,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

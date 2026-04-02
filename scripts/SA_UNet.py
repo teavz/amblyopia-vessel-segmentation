@@ -118,30 +118,29 @@ class DropBlock2D(tf.keras.layers.Layer):
         super().build(input_shape)
 
     def call(self, inputs, training=None):
-        # 1) get learning phase if not passed in
-        if training is None:
-            training = K.learning_phase()
-        # 2) cast to bool tensor
-        is_training = tf.cast(training, tf.bool)
-        # 3) only drop when training AND keep_prob < 1.0
-        do_drop = tf.logical_and(
-          is_training,
-          tf.less(self.keep_prob, 1.0)
-        )
-
-        def dropped():
+        # Handle Keras 3: rely solely on the `training` flag.
+        # If `training` is a Python bool, branch eagerly; otherwise use tf.cond.
+        def _dropped_impl():
             mask = self._create_mask(tf.shape(inputs))
             out = inputs * mask
             if self.scale:
                 scale_factor = (
-                    tf.cast(tf.size(mask), tf.float32)
-                    / tf.reduce_sum(mask)
+                    tf.cast(tf.size(mask), tf.float32) / tf.reduce_sum(mask)
                 )
                 out = out * scale_factor
             return out
 
-        # 4) apply drop or pass through
-        return tf.cond(do_drop, dropped, lambda: inputs)
+        # Nothing to drop if keep_prob == 1
+        if self.keep_prob >= 1.0:
+            return inputs
+
+        # If training is explicitly boolean
+        if isinstance(training, bool):
+            return _dropped_impl() if training else inputs
+
+        # Otherwise, `training` is a tensor-like; use tf.cond
+        is_training = tf.cast(training if training is not None else False, tf.bool)
+        return tf.cond(is_training, _dropped_impl, lambda: inputs)
 
     def _update_gamma(self):
         w = tf.cast(self.w, tf.float32)
@@ -287,5 +286,4 @@ def SA_UNet(
 
     model = Model(inputs=inputs, outputs=output_act)
     return model
-
 
